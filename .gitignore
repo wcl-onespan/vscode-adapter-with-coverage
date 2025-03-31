@@ -6,3 +6,5 @@ node_modules
 /vscode.d.ts
 /vscode.proposed.d.ts
 test-results.xml
+sample/coverage/pester-coverage.xml
+sample/coverage.xml

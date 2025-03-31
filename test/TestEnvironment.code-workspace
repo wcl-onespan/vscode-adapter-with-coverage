@@ -8,5 +8,6 @@
   "settings": {
     "git.openRepositoryInParentFolders": "never",
     "extensions.ignoreRecommendations": true,
+    "powershell.pester.codeLens": false,
   }
 }

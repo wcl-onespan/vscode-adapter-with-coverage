@@ -12,6 +12,13 @@
 	},
 	"packageManager": "pnpm@8.3.1",
 	"contributes": {
+		"commands": [
+			{
+				"command": "pester.runCoverageReport",
+				"title": "Pester: Run Coverage Report",
+				"category": "Pester"
+			}
+		],
 		"configuration": {
 			"title": "Pester",
 			"properties": {
@@ -64,6 +71,11 @@
 					"type": "integer",
 					"default": 100,
 					"markdownDescription": "Specifies the timeout in milliseconds that the test adapter waits for changes to be detected before running the test. You may need to increase this value if you are on a slower computer and are getting duplicate runs after making changes or starting up the test adapter."
+				},
+				"pester.coverageOutputPath": {
+					"type": "string",
+					"default": "${pester.workingDirectory}/coverage",
+					"markdownDescription": "Specifies the output path for the Pester code coverage report. Defaults to a 'coverage' directory in your workspace."
 				}
 			}
 		}
@@ -161,7 +173,8 @@
 		"vscode:prepublish": "pnpm run build"
 	},
 	"dependencies": {
-		"@ctiterm/strip-ansi": "^1.0.0"
+		"@ctiterm/strip-ansi": "^1.0.0",
+		"pester-test": "file:"
 	},
 	"pnpm": {
 		"patchedDependencies": {
