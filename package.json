@@ -15,7 +15,7 @@
 		"commands": [
 			{
 				"command": "pester.runCoverageReport",
-				"title": "Pester: Run Coverage Report",
+				"title": "Run Coverage Report",
 				"category": "Pester"
 			}
 		],

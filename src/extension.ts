@@ -7,8 +7,8 @@ import {
 import { watchWorkspace } from './workspaceWatcher'
 import log, { VSCodeLogOutputChannelTransport } from './log'
 import { spawn } from 'child_process';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { existsSync, mkdirSync, PathLike, readFileSync, writeFileSync } from 'fs';
+import { join, basename } from 'path';
 
 export async function activate(context: ExtensionContext) {
 
@@ -183,7 +183,7 @@ function runPesterCoverageReport() {
     window.showErrorMessage(`Failed to configure coverage output path: ${error instanceof Error ? error.message : error}`);
     return;
   }
-  const coverageOutputFile = join(coverageOutputPath, 'pester-coverage.xml');
+  const coverageOutputFile = join(coverageOutputPath, 'coverage.xml');
   log.info(`Coverage report will be saved to: ${coverageOutputFile}`);
 
 	// Build the command to run the coverage report with Pester
@@ -216,6 +216,10 @@ function runPesterCoverageReport() {
     if (code === 0) {
       log.info('Pester coverage report completed successfully.');
       window.showInformationMessage('Pester coverage report completed successfully.');
+			// Patch the coverage XML file
+			log.info(`Running workaround for VSCode Coverage support, Patching coverage XML file: ${coverageOutputFile}`);
+			patchPesterCoverageXml(coverageOutputFile);
+
     } else {
       log.error(`Pester process exited with code ${code}`);
       window.showErrorMessage(`Pester coverage report failed with exit code ${code}`);
@@ -227,4 +231,35 @@ function runPesterCoverageReport() {
     log.error('Error running Pester coverage report', { error });
     window.showErrorMessage(`Error running Pester coverage report: ${error.message}`);
   });
+}
+
+/**
+ * Workaround for Pester coverage XML output
+ * The Pester coverage XML output is not compatible with the PowerShell extension's coverage report viewer.
+ * This function patches the XML file to make it compatible.
+ * It replaces the package name and class names in the XML file.
+ * @param xmlFilePath The path to the XML file to patch.
+ * @returns  {Promise<void>} A promise that resolves when the patching is complete.
+ * @throws {Error} If the XML file does not exist or cannot be read.
+ */
+function patchPesterCoverageXml(xmlFilePath: PathLike) {
+  if (!existsSync(xmlFilePath)) {
+    log.error(`File not found: ${xmlFilePath}`);
+    return;
+  }
+
+  let xml = readFileSync(xmlFilePath, 'utf-8');
+
+  // Replace package name
+  xml = xml.replace(/<package\s+name="[^"]*"/, '<package name="."');
+
+  // Replace class names
+  xml = xml.replace(/<class\s+name="[^"]*"\s+filename="([^"]+)\.ps1"/g, (match, filename) => {
+    const className = `${basename(filename)}`;
+    return `<class name="${className}" filename="${filename}.ps1"`;
+  });
+
+  writeFileSync(xmlFilePath, xml, 'utf-8');
+  log.info(`✅ Patched coverage XML: ${xmlFilePath}`);
+	window.showInformationMessage(`Workaround for VSCode Coverage, Patched coverage XML: ${xmlFilePath}`);
 }
